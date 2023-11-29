@@ -24,6 +24,21 @@ FPS = 60
 clock = pygame.time.Clock()
 
 
+class MainCar:
+    def __init__(self, max_vel, rot_vel) -> None:
+        self.max_vel = max_vel
+        self.vel = 0
+        self.rot_vel = rot_vel
+        self.angle = 0
+
+    def rotate(self, left=False, right=False):
+        if left:
+            self.angle -= self.rot_vel
+
+        elif right:
+            self.angle += self.rot_vel
+
+
 def draw(screen, images):
     for img, pos in images:
         screen.blit(img, pos)
