@@ -33,22 +33,39 @@ class MainCar:
         self.rot_vel = rot_vel
         self.angle = 0
         self.x, self.y = self.START_POS
+        self.accel = 0.1
 
     def rotate(self, left=False, right=False):
-        if left and self.vel < 10:
+        if left:
             self.angle += self.rot_vel
 
-        if left and self.vel >= 10:
-            self.angle += self.rot_vel / 3
+        # if left and self.vel >= 10:
+            # self.angle += self.rot_vel / 1.5
 
-        if right and self.vel < 10:
+        if right:
             self.angle -= self.rot_vel
 
-        if right and self.vel >= 10:
-            self.angle -= self.rot_vel / 3
+        # if right and self.vel >= 10:
+            # self.angle -= self.rot_vel / 1.5
 
     def draw(self, screen):
         blit_rotate_center(screen, self.IMG, (self.x, self.y), self.angle)
+
+    def move_forward(self):
+        self.vel = min(self.vel + self.accel, self.max_vel)
+        self.move()
+
+    def move(self):
+        radians = math.radians(self.angle)
+        vertical = math.cos(radians) * self.vel
+        horizontal = math.sin(radians) * self.vel
+
+        self.y -= vertical
+        self.x -= horizontal
+
+    def drag(self):
+        self.vel = max(self.vel - self.accel * 2, 0)
+        self.move()
 
 
 class PlayerCar(MainCar):
@@ -65,7 +82,7 @@ def draw(screen, images, player_car):
 
 
 images = [(GRASS, (0, 0)), (RACE_TRACK, (0, 0))]
-player_car = PlayerCar(20, 4)
+player_car = PlayerCar(3, 4)
 
 playing = True
 while playing:
@@ -79,6 +96,8 @@ while playing:
 
     keys = pygame.key.get_pressed()
 
+    moved = False
+
     if keys[pygame.K_a]:
         player_car.rotate(left=True)
 
@@ -86,10 +105,13 @@ while playing:
         player_car.rotate(right=True)
 
     if keys[pygame.K_w]:
-        player_car.vel += 2
+        moved = True
+        player_car.move_forward()
+
+    if not moved:
+        player_car.drag()
 
     if keys[pygame.K_s]:
-        player_car.vel -= 3
-
+        player_car.move_forward()
 
 pygame.quit()
