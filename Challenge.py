@@ -36,17 +36,19 @@ class MainCar:
         self.accel = 0.3
 
     def rotate(self, left=False, right=False):
-        if left and self.vel < self.max_vel:
+        if left and self.vel < self.max_vel\
+                and self.vel > 0:
             self.angle += self.rot_vel
 
         if left and self.vel == self.max_vel:
-            self.angle += (self.rot_vel / 1.5)
+            self.angle += (self.rot_vel / 1.3)
 
-        if right and self.vel < self.max_vel:
+        if right and self.vel < self.max_vel\
+                and self.vel > 0:
             self.angle -= self.rot_vel
 
         if right and self.vel == self.max_vel:
-            self.angle -= (self.rot_vel / 1.5)
+            self.angle -= (self.rot_vel / 1.3)
 
     def draw(self, screen):
         blit_rotate_center(screen, self.IMG, (self.x, self.y), self.angle)
@@ -55,17 +57,13 @@ class MainCar:
         self.vel = min(self.vel + self.accel, self.max_vel)
         self.move()
 
-    def slow_down(self):
-        self.vel = max(self.vel - self.accel, 0)
-        self.move()
-
     def move(self):
         radians = math.radians(self.angle)
         vertical = math.cos(radians) * self.vel
         horizontal = math.sin(radians) * self.vel
 
-        self.y -= vertical
         self.x -= horizontal
+        self.y -= vertical
 
     def drag(self, force):
         self.vel = max(self.vel - force, 0)
@@ -85,19 +83,7 @@ def draw(screen, images, player_car):
     pygame.display.update()
 
 
-images = [(GRASS, (0, 0)), (RACE_TRACK, (0, 0))]
-player_car = PlayerCar(4, 4)
-
-playing = True
-while playing:
-    clock.tick(FPS)
-
-    draw(SCREEN, images, player_car)
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            playing = False
-
+def move_player(player_car):
     keys = pygame.key.get_pressed()
 
     moved = False
@@ -113,9 +99,26 @@ while playing:
         player_car.move_forward()
 
     if not moved:
-        player_car.drag(force=0.05)
+        player_car.drag(force=0.03)
 
     if keys[pygame.K_s]:
-        player_car.slow_down()
+        player_car.drag(force=0.09)
+
+
+images = [(GRASS, (0, 0)), (RACE_TRACK, (0, 0))]
+player_car = PlayerCar(4, 4)
+
+playing = True
+while playing:
+    clock.tick(FPS)
+
+    draw(SCREEN, images, player_car)
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            playing = False
+
+    move_player(player_car)
+
 
 pygame.quit()
