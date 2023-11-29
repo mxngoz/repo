@@ -10,6 +10,7 @@ RACE_TRACK = scale_img(pygame.image.load(
     os.path.join('imgs', 'track.png')), 0.8)
 RACE_TRACK_BORDER = scale_img(pygame.image.load(
     os.path.join('imgs', 'track-border.png')), 0.8)
+RACE_TRACK_BORDER_MASK = pygame.mask.from_surface(RACE_TRACK_BORDER)
 
 FINISH_LINE = pygame.image.load(os.path.join('imgs', 'finish.png'))
 
@@ -69,6 +70,13 @@ class MainCar:
         self.vel = max(self.vel - force, 0)
         self.move()
 
+    def collide(self, mask, x=0, y=0):
+        car_mask = pygame.mask.from_surface(self.IMG)
+        offset = (int(self.x - x), int(self.y - y))
+        poi = mask.overlap(car_mask, offset)
+
+        return poi
+
 
 class PlayerCar(MainCar):
     IMG = RED_CAR
@@ -119,6 +127,7 @@ while playing:
             playing = False
 
     move_player(player_car)
-
+    if player_car.collide(RACE_TRACK_BORDER_MASK) != None:
+        print('collide')
 
 pygame.quit()
