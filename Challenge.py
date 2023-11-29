@@ -14,7 +14,7 @@ RACE_TRACK_BORDER = scale_img(pygame.image.load(
 FINISH_LINE = pygame.image.load(os.path.join('imgs', 'finish.png'))
 
 RED_CAR = scale_img(pygame.image.load(
-    os.path.join('imgs', 'red-car.png')), 0.6)
+    os.path.join('imgs', 'red-car.png')), 0.4)
 GREEN_CAR = pygame.image.load(os.path.join('imgs', 'green-car.png'))
 
 WIDTH, HEIGHT = RACE_TRACK.get_width(), RACE_TRACK.get_height()
@@ -33,26 +33,30 @@ class MainCar:
         self.rot_vel = rot_vel
         self.angle = 0
         self.x, self.y = self.START_POS
-        self.accel = 0.1
+        self.accel = 0.3
 
     def rotate(self, left=False, right=False):
-        if left:
+        if left and self.vel < self.max_vel:
             self.angle += self.rot_vel
 
-        # if left and self.vel >= 10:
-            # self.angle += self.rot_vel / 1.5
+        if left and self.vel == self.max_vel:
+            self.angle += (self.rot_vel / 1.5)
 
-        if right:
+        if right and self.vel < self.max_vel:
             self.angle -= self.rot_vel
 
-        # if right and self.vel >= 10:
-            # self.angle -= self.rot_vel / 1.5
+        if right and self.vel == self.max_vel:
+            self.angle -= (self.rot_vel / 1.5)
 
     def draw(self, screen):
         blit_rotate_center(screen, self.IMG, (self.x, self.y), self.angle)
 
     def move_forward(self):
         self.vel = min(self.vel + self.accel, self.max_vel)
+        self.move()
+
+    def slow_down(self):
+        self.vel = max(self.vel - self.accel, 0)
         self.move()
 
     def move(self):
@@ -63,8 +67,8 @@ class MainCar:
         self.y -= vertical
         self.x -= horizontal
 
-    def drag(self):
-        self.vel = max(self.vel - self.accel * 2, 0)
+    def drag(self, force):
+        self.vel = max(self.vel - force, 0)
         self.move()
 
 
@@ -82,7 +86,7 @@ def draw(screen, images, player_car):
 
 
 images = [(GRASS, (0, 0)), (RACE_TRACK, (0, 0))]
-player_car = PlayerCar(3, 4)
+player_car = PlayerCar(4, 4)
 
 playing = True
 while playing:
@@ -109,9 +113,9 @@ while playing:
         player_car.move_forward()
 
     if not moved:
-        player_car.drag()
+        player_car.drag(force=0.05)
 
     if keys[pygame.K_s]:
-        player_car.move_forward()
+        player_car.slow_down()
 
 pygame.quit()
