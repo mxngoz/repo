@@ -44,14 +44,14 @@ class MainCar:
             self.angle += self.rot_vel
 
         if left and self.vel == self.max_vel:
-            self.angle += (self.rot_vel / 1.3)
+            self.angle += (self.rot_vel / 1.4)
 
         if right and self.vel < self.max_vel\
                 and self.vel > 0:
             self.angle -= self.rot_vel
 
         if right and self.vel == self.max_vel:
-            self.angle -= (self.rot_vel / 1.3)
+            self.angle -= (self.rot_vel / 1.4)
 
         if left and self.vel < 0:
             self.angle += self.rot_vel / 1.2
@@ -63,7 +63,8 @@ class MainCar:
         blit_rotate_center(screen, self.IMG, (self.x, self.y), self.angle)
 
     def move_forward(self):
-        self.vel = min(self.vel + self.accel, self.max_vel)
+        self.vel = min(self.vel + self.accel *
+                       (abs(self.vel) + 0.5), self.max_vel)
         self.move()
 
     def move_backwards(self):
@@ -98,8 +99,13 @@ class PlayerCar(MainCar):
     START_POS = (30, 350)
 
     def bounce(self):
-        if self.vel >= 0 and self.vel <= self.max_vel:
-            self.vel = -1
+        if self.vel >= 0 and self.vel < self.max_vel:
+            self.vel = -0.7
+            self.move()
+            return
+
+        if self.vel == self.max_vel:
+            self.vel = -self.vel / 2
             self.move()
             return
 
@@ -144,7 +150,7 @@ def move_player(player_car):
 
 
 images = [(GRASS, (0, 0)), (RACE_TRACK, (0, 0))]
-player_car = PlayerCar(2.5, 3)
+player_car = PlayerCar(2.5, 2.5)
 
 
 playing = True
