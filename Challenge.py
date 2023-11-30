@@ -69,7 +69,6 @@ class MainCar:
         self.move()
 
     def move_backwards(self):
-        print(f'backwards vel = {self.vel}')
         if self.vel > -self.max_vel / 2:
             self.vel -= self.accel
 
