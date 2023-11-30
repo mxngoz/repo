@@ -15,8 +15,9 @@ RACE_TRACK_BORDER_MASK = pygame.mask.from_surface(RACE_TRACK_BORDER)
 FINISH_LINE = pygame.image.load(os.path.join('imgs', 'finish.png'))
 
 RED_CAR = scale_img(pygame.image.load(
-    os.path.join('imgs', 'red-car.png')), 0.3)
-GREEN_CAR = pygame.image.load(os.path.join('imgs', 'green-car.png'))
+    os.path.join('imgs', 'red-car.png')), 0.03)
+GREEN_CAR = scale_img(pygame.image.load(
+    os.path.join('imgs', 'green-car.png')), 0.03)
 
 WIDTH, HEIGHT = RACE_TRACK.get_width(), RACE_TRACK.get_height()
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -26,7 +27,7 @@ clock = pygame.time.Clock()
 
 
 class MainCar:
-    IMG = RED_CAR
+    IMG = GREEN_CAR
     # standaard auto kracht van 2
 
     def __init__(self, max_vel, rot_vel) -> None:
@@ -95,7 +96,7 @@ class MainCar:
 
 
 class PlayerCar(MainCar):
-    IMG = RED_CAR
+    IMG = GREEN_CAR
     START_POS = (30, 350)
 
     def bounce(self):
