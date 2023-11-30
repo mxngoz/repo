@@ -37,7 +37,7 @@ class MainCar:
         self.rot_vel = rot_vel
         self.angle = 0
         self.x, self.y = self.START_POS
-        self.accel = 0.02
+        self.accel = 0.012
 
     def rotate(self, left=False, right=False):
         if left and self.vel < self.max_vel\
@@ -45,14 +45,14 @@ class MainCar:
             self.angle += self.rot_vel
 
         if left and self.vel == self.max_vel:
-            self.angle += (self.rot_vel / 1.4)
+            self.angle += (self.rot_vel / 1.5)
 
         if right and self.vel < self.max_vel\
                 and self.vel > 0:
             self.angle -= self.rot_vel
 
         if right and self.vel == self.max_vel:
-            self.angle -= (self.rot_vel / 1.4)
+            self.angle -= (self.rot_vel / 1.5)
 
         if left and self.vel < 0:
             self.angle += self.rot_vel / 1.2
@@ -69,7 +69,13 @@ class MainCar:
         self.move()
 
     def move_backwards(self):
-        self.vel = max(self.vel - (self.accel + 0.4), -self.max_vel / 2)
+        print(f'backwards vel = {self.vel}')
+        if self.vel > -self.max_vel / 2:
+            self.vel -= self.accel
+
+        elif self.vel <= -self.max_vel / 2:
+            self.vel = -self.max_vel / 2
+
         self.move()
 
     def move(self):
@@ -81,11 +87,16 @@ class MainCar:
         self.y -= vertical
 
     def drag(self):
-        self.vel = max(self.vel - self.accel, 0)
+        if self.vel > 0:
+            self.vel = max(self.vel - self.accel * 2, 0)
+
+        elif self.vel < 0:
+            self.vel += self.accel * 2
+
         self.move()
 
     def brake(self):
-        self.vel = max(self.vel - self.accel, 0)
+        self.vel -= self.accel * 2
 
     def collide(self, mask, x=0, y=0):
         car_mask = pygame.mask.from_surface(self.IMG)
@@ -100,20 +111,20 @@ class PlayerCar(MainCar):
     START_POS = (30, 350)
 
     def bounce(self):
-        if self.vel >= 0 and self.vel < self.max_vel:
-            self.vel = -0.7
-            self.move()
-            return
 
-        if self.vel == self.max_vel:
-            self.vel = -self.vel / 2
-            self.move()
-            return
+        if self.vel > 0 and self.vel < self.max_vel / 2:
+            self.vel = -(self.vel / 1.4)
 
-        if self.vel < 0:
+        elif self.vel > self.max_vel / 2 and self.vel <= self.max_vel:
+            self.vel = -self.vel / 1.3
+
+        elif self.vel < 0:
             self.vel = -self.vel
-            self.move()
-            return
+
+        if self.vel == 0:
+            self.vel -= 0.4
+
+        self.move()
 
 
 def draw(screen, images, player_car):
@@ -127,7 +138,8 @@ def draw(screen, images, player_car):
 def move_player(player_car):
     keys = pygame.key.get_pressed()
 
-    moved = False
+    moving_fw = False
+    moving_bw = False
 
     if keys[pygame.K_a]:
         player_car.rotate(left=True)
@@ -136,18 +148,22 @@ def move_player(player_car):
         player_car.rotate(right=True)
 
     if keys[pygame.K_w]:
-        moved = True
+        moving_fw = True
         player_car.move_forward()
 
-    if not moved:
+    if player_car.vel > 0 and not moving_fw:
         player_car.drag()
 
     if keys[pygame.K_s]:
-        moved = True
-        player_car.brake()
+        moving_bw = True
+        if player_car.vel > 0:
+            player_car.brake()
 
-        if player_car.vel == 0:
+        elif player_car.vel <= 0:
             player_car.move_backwards()
+
+    if player_car.vel < 0 and not moving_bw:
+        player_car.drag()
 
 
 images = [(GRASS, (0, 0)), (RACE_TRACK, (0, 0))]
