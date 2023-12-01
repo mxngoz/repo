@@ -30,9 +30,12 @@ D_KEY = scale_img(pygame.image.load(
 
 
 WIDTH, HEIGHT = RACE_TRACK.get_width(), RACE_TRACK.get_height()
-print(WIDTH, HEIGHT)
-SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 
+SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
+print(f'W; {W_KEY.get_width()}')
+print(f'A; {A_KEY.get_width()}')
+print(f'S; {S_KEY.get_width()}')
+print(f'D; {D_KEY.get_width()}')
 FPS = 60
 clock = pygame.time.Clock()
 
@@ -118,7 +121,7 @@ class MainCar:
 
 class PlayerCar(MainCar):
     IMG = GREEN_CAR
-    START_POS = (30, 350)
+    START_POS = (50, 400)
 
     def bounce(self):
 
