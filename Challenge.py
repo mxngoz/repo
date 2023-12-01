@@ -19,7 +19,18 @@ RED_CAR = scale_img(pygame.image.load(
 GREEN_CAR = scale_img(pygame.image.load(
     os.path.join('imgs', 'green-car.png')), 0.03)
 
+W_KEY = scale_img(pygame.image.load(
+    os.path.join('imgs', 'w-key.png')), 0.2)
+A_KEY = scale_img(pygame.image.load(
+    os.path.join('imgs', 'a-key.png')), 0.2)
+S_KEY = scale_img(pygame.image.load(
+    os.path.join('imgs', 's-key.png')), 0.2)
+D_KEY = scale_img(pygame.image.load(
+    os.path.join('imgs', 'd-key.png')), 0.2)
+
+
 WIDTH, HEIGHT = RACE_TRACK.get_width(), RACE_TRACK.get_height()
+print(WIDTH, HEIGHT)
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 
 FPS = 60
@@ -112,10 +123,10 @@ class PlayerCar(MainCar):
     def bounce(self):
 
         if self.vel > 0 and self.vel < self.max_vel / 2:
-            self.vel = -(self.vel / 1.4)
+            self.vel = -(self.vel / 1.7)
 
         elif self.vel > self.max_vel / 2 and self.vel <= self.max_vel:
-            self.vel = -self.vel / 1.3
+            self.vel = -self.vel / 1.5
 
         elif self.vel < 0:
             self.vel = -self.vel
@@ -134,7 +145,7 @@ def draw(screen, images, player_car):
     pygame.display.update()
 
 
-def move_player(player_car):
+def move_player(player_car, image_list):
     keys = pygame.key.get_pressed()
 
     moving_fw = False
@@ -142,35 +153,45 @@ def move_player(player_car):
 
     if keys[pygame.K_a]:
         player_car.rotate(left=True)
+        image_list.append((A_KEY, (0, 720 - 60)))
 
     if keys[pygame.K_d]:
         player_car.rotate(right=True)
+        image_list.append((D_KEY, (98, 720 - 60)))
 
     if keys[pygame.K_w]:
         moving_fw = True
         player_car.move_forward()
+        image_list.append((W_KEY, (30, 720 - 60 - 49)))
 
     if player_car.vel > 0 and not moving_fw:
         player_car.drag()
 
     if keys[pygame.K_s]:
         moving_bw = True
+
         if player_car.vel > 0:
             player_car.brake()
 
         elif player_car.vel <= 0:
             player_car.move_backwards()
 
+        image_list.append((S_KEY, (50, 720 - 60)))
+
     if player_car.vel < 0 and not moving_bw:
         player_car.drag()
 
+    return image_list
 
-images = [(GRASS, (0, 0)), (RACE_TRACK, (0, 0))]
+
 player_car = PlayerCar(2.5, 2.5)
 
 
 playing = True
 while playing:
+    images = [(GRASS, (0, 0)), (RACE_TRACK, (0, 0))]
+    images = move_player(player_car, images)
+
     clock.tick(FPS)
 
     draw(SCREEN, images, player_car)
@@ -179,7 +200,6 @@ while playing:
         if event.type == pygame.QUIT:
             playing = False
 
-    move_player(player_car)
     if player_car.collide(RACE_TRACK_BORDER_MASK) != None:
         player_car.bounce()
 
