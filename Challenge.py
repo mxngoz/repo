@@ -63,6 +63,10 @@ RED_CAR = scale_img(pygame.image.load(
     os.path.join('imgs', 'red-car.png')), 0.03)
 GREEN_CAR = scale_img(pygame.image.load(
     os.path.join('imgs', 'green-car.png')), 0.03)
+BLUE_CAR = scale_img(pygame.image.load(
+    os.path.join('imgs', 'blue-car.png')), 0.03)
+GREY_CAR = scale_img(pygame.image.load(
+    os.path.join('imgs', 'grey-car.png')), 0.3)
 
 W_KEY = scale_img(pygame.image.load(
     os.path.join('imgs', 'w-key.png')), 0.2)
@@ -78,6 +82,8 @@ FONT = pygame.font.SysFont('calibri', 44)
 
 COMP_CAR_PATH = [(580, 720), (618, 689), (640, 631), (679, 582), (725, 567), (796, 551), (829, 489), (816, 414), (774, 366), (664, 363), (516, 342), (401, 232), (259, 195), (145, 188), (84, 219), (74, 247), (73, 269), (76, 289), (86, 309),
                  (95, 323), (105, 336), (117, 344), (128, 351), (150, 356), (189, 362), (331, 367), (511, 545), (512, 609), (417, 604), (255, 608), (191, 569), (178, 532), (129, 513), (74, 549), (115, 668), (148, 712), (201, 722), (269, 722), (359, 722)]
+COMP_CAR_PATH2 = [(621, 712), (634, 679), (647, 631), (693, 574), (757, 557), (817, 504), (822, 441), (832, 393), (771, 353), (545, 337), (480, 280), (399, 199), (130, 172),
+                  (76, 225), (109, 324), (316, 358), (466, 469), (508, 588), (411, 598), (201, 577), (182, 526), (111, 504), (78, 532), (67, 574), (87, 621), (136, 719), (167, 728), (209, 735)]
 
 WIDTH, HEIGHT = RACE_TRACK.get_width(), RACE_TRACK.get_height()
 
@@ -118,7 +124,7 @@ class GameInfo:
 
 
 class MainCar:
-    IMG = GREEN_CAR
+
     # standaard auto kracht van 2
 
     def __init__(self, max_vel, rot_vel) -> None:
@@ -203,22 +209,28 @@ class MainCar:
 
 
 class PlayerCar(MainCar):
-    IMG = GREEN_CAR
-    START_POS = (370, 701)
+
+    def __init__(self, max_vel, rot_vel, pos=None, IMG=GREEN_CAR) -> None:
+        self.IMG = IMG
+        if pos == None:
+            pos = (370, 701)
+        self.START_POS = pos
+
+        super().__init__(max_vel, rot_vel)
 
     def bounce(self):
 
-        if self.vel > 0 and self.vel < self.max_vel / 2:
-            self.vel = -(self.vel / 1.7)
+        if self.vel > 0.1 and self.vel < self.max_vel / 2:
+            self.vel = -(self.vel / 1.4)
 
         elif self.vel > self.max_vel / 2 and self.vel <= self.max_vel:
             self.vel = -self.vel / 1.5
 
         elif self.vel < 0:
-            self.vel = -self.vel
+            self.vel = 0.7
 
-        if self.vel == 0:
-            self.vel -= 0.4
+        if self.vel <= 0.1 and self.vel > 0:
+            self.vel = -0.4
 
         self.move()
 
@@ -229,14 +241,16 @@ class PlayerCar(MainCar):
 
 
 class Computer(MainCar):
-    IMG = RED_CAR
-    START_POS = (390, 725)
 
-    def __init__(self, max_vel, rot_vel, path=None) -> None:
+    def __init__(self, max_vel, rot_vel, path=None, START_POS=None, IMG=RED_CAR) -> None:
+        if START_POS == None:
+            START_POS = (390, 725)
+
+        self.IMG = IMG
+        self.START_POS = START_POS
         super().__init__(max_vel, rot_vel)
         if path == None:
             path = []
-
         self.path = path
         self.current_point = 0
         self.vel = max_vel
@@ -249,6 +263,7 @@ class Computer(MainCar):
         super().draw(screen)
 
     def calc_angle(self):
+
         target_x, target_y = self.path[self.current_point]
         dx = target_x - self.x
         dy = target_y - self.y
@@ -300,7 +315,7 @@ class Computer(MainCar):
         self.current_point = 0
 
 
-def draw(screen, images, player_car, comp_car):
+def draw(screen, images, player_car, player_car2, comp_car1, comp_car2):
     for img, pos in images:
         screen.blit(img, pos)
 
@@ -311,86 +326,161 @@ def draw(screen, images, player_car, comp_car):
         f'Time: {game_info.get_level_time():.0f}s', 1, (153, 0, 0))
     screen.blit(time_text, (700, 860))
 
-    vel_text = FONT.render(
-        f'Velocity: {player_car.vel:.1f}', 1, (153, 0, 0))
-    screen.blit(vel_text, (700, 800))
+    vel_text1 = FONT.render(
+        f'Velocity P1: {player_car.vel:.1f}', 1, (153, 0, 0))
+    vel_text2 = FONT.render(
+        f'Velocity P2: {player_car2.vel:.1f}', 1, (153, 0, 0))
+    screen.blit(vel_text2, (650, 800))
+    screen.blit(vel_text1, (650, 760))
 
     player_car.draw(screen)
-    comp_car.draw(screen)
+    player_car2.draw(screen)
+    comp_car1.draw(screen)
+    comp_car2.draw(screen)
     pygame.display.update()
 
 
-def move_player(player_car, image_list):
+def move_player1(player_car1, image_list):
     keys = pygame.key.get_pressed()
 
     moving_fw = False
     moving_bw = False
 
     if keys[pygame.K_a]:
-        player_car.rotate(left=True)
+        player_car1.rotate(left=True)
         image_list.append((A_KEY, (0, 800)))
 
     if keys[pygame.K_d]:
-        player_car.rotate(right=True)
+        player_car1.rotate(right=True)
         image_list.append((D_KEY, (98, 800)))
 
     if keys[pygame.K_w]:
         moving_fw = True
-        player_car.move_forward()
+        player_car1.move_forward()
         image_list.append((W_KEY, (30, 800 - 49)))
 
-    if player_car.vel > 0 and not moving_fw:
-        player_car.drag()
+    if player_car1.vel > 0 and not moving_fw:
+        player_car1.drag()
 
     if keys[pygame.K_s]:
         moving_bw = True
 
-        if player_car.vel > 0:
-            player_car.brake()
+        if player_car1.vel > 0:
+            player_car1.brake()
 
-        elif player_car.vel <= 0:
-            player_car.move_backwards()
+        elif player_car1.vel <= 0:
+            player_car1.move_backwards()
 
         image_list.append((S_KEY, (50, 800)))
 
-    if player_car.vel < 0 and not moving_bw:
-        player_car.drag()
+    if player_car1.vel < 0 and not moving_bw:
+        player_car1.drag()
 
     return image_list
 
 
-def handle_collision(player_car: PlayerCar, comp_car: Computer, game_info: GameInfo):
-    if player_car.collide(RACE_TRACK_BORDER_MASK, RACE_TRACK_BORDER_POS[0], RACE_TRACK_BORDER_POS[1]) != None:
-        player_car.bounce()
+def move_player2(player_car2):
+    keys = pygame.key.get_pressed()
 
-    player_finish_line_collision_point = player_car.collide(
+    moving_fw = False
+    moving_bw = False
+
+    if keys[pygame.K_LEFT]:
+        player_car2.rotate(left=True)
+
+    if keys[pygame.K_RIGHT]:
+        player_car2.rotate(right=True)
+
+    if keys[pygame.K_UP]:
+        moving_fw = True
+        player_car2.move_forward()
+
+    if player_car2.vel > 0 and not moving_fw:
+        player_car2.drag()
+
+    if keys[pygame.K_DOWN]:
+        moving_bw = True
+
+        if player_car2.vel > 0:
+            player_car2.brake()
+
+        elif player_car2.vel <= 0:
+            player_car2.move_backwards()
+
+    if player_car2.vel < 0 and not moving_bw:
+        player_car2.drag()
+
+
+def handle_collision(player_car1: PlayerCar, player_car2: PlayerCar, comp_car1: Computer, comp_car2: Computer, game_info: GameInfo):
+    if player_car1.collide(RACE_TRACK_BORDER_MASK, RACE_TRACK_BORDER_POS[0], RACE_TRACK_BORDER_POS[1]) != None:
+        player_car1.bounce()
+        print(player_car1.vel)
+
+    if player_car2.collide(RACE_TRACK_BORDER_MASK, RACE_TRACK_BORDER_POS[0], RACE_TRACK_BORDER_POS[1]) != None:
+        player_car2.bounce()
+
+    player1_finish_line_collision_point = player_car1.collide(
         FINISH_LINE_MASK, FINISH_LINE_POS[0], FINISH_LINE_POS[1])
 
-    comp_finish_line_collision_point = computer_car.collide(
+    player2_finish_line_collision_point = player_car1.collide(
         FINISH_LINE_MASK, FINISH_LINE_POS[0], FINISH_LINE_POS[1])
 
-    if player_finish_line_collision_point != None:
+    comp1_finish_line_collision_point = comp_car1.collide(
+        FINISH_LINE_MASK, FINISH_LINE_POS[0], FINISH_LINE_POS[1])
+    comp2_finish_line_collision_point = comp_car2.collide(
+        FINISH_LINE_MASK, FINISH_LINE_POS[0], FINISH_LINE_POS[1])
 
-        if player_finish_line_collision_point[0] not in range(12) or player_car.vel < 0\
-                or (player_car.angle < 540 and player_car.angle > 370) is True:
-            player_car.bounce_finish()
+    if player1_finish_line_collision_point != None:
+
+        if player1_finish_line_collision_point[0] not in range(11) or player_car1.vel < 0\
+                or (player_car1.angle < 540 and player_car1.angle > 370) is True:
+            player_car1.bounce_finish()
 
         else:
             game_info.next_level()
-            player_car.reset()
-            comp_car.next_level(game_info.level)
+            player_car1.reset()
+            player_car2.reset()
+            comp_car1.next_level(game_info.level)
+            comp_car2.next_level(game_info.level)
 
-    if comp_finish_line_collision_point != None:
-        SCREEN.blit(LOSE_SCREEN, (250, 400))
+    if player2_finish_line_collision_point != None:
+
+        if player2_finish_line_collision_point[0] not in range(11) or player_car2.vel < 0\
+                or (player_car2.angle < 540 and player_car2.angle > 370) is True:
+            player_car2.bounce_finish()
+
+        else:
+            game_info.next_level()
+            player_car1.reset()
+            player_car2.reset()
+            comp_car1.next_level(game_info.level)
+            comp_car2.next_level(game_info.level)
+
+    if comp1_finish_line_collision_point != None:
+        SCREEN.blit(LOSE_SCREEN, (250, 500))
         pygame.display.update()
         pygame.time.wait(5000)
         game_info.reset()
-        comp_car.reset_comp(game_info.level)
-        player_car.reset()
+        comp_car1.reset_comp(game_info.level)
+        comp_car2.reset_comp(game_info.level)
+        player_car1.reset()
+        player_car2.reset()
+
+    if comp2_finish_line_collision_point != None:
+        SCREEN.blit(LOSE_SCREEN, (250, 500))
+        pygame.display.update()
+        pygame.time.wait(5000)
+        game_info.reset()
+        comp_car1.reset_comp(game_info.level)
+        comp_car2.reset_comp(game_info.level)
+        player_car1.reset()
+        player_car2.reset()
 
 
 player_car = PlayerCar(3, 3)
+player_car2 = PlayerCar(3, 3, pos=(410, 701), IMG=GREY_CAR)
 computer_car = Computer(1.5, 5, COMP_CAR_PATH)
+computer_car2 = Computer(1.6, 5, COMP_CAR_PATH2, (424, 725), BLUE_CAR)
 
 
 playing = True
@@ -404,6 +494,7 @@ while playing:
         blit_text_center(
             SCREEN, FONT, f'Press Any Key To Start: Level {game_info.level}')
         pygame.display.update()
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -413,11 +504,13 @@ while playing:
 
     images = [(GRASS, (0, 0)), (RACE_TRACK, (0, 0)),
               (FINISH_LINE, FINISH_LINE_POS), (RACE_TRACK_BORDER, RACE_TRACK_BORDER_POS)]
+    move_player2(player_car2)
+    images = move_player1(player_car, images)
 
-    images = move_player(player_car, images)
     computer_car.move()
+    computer_car2.move()
 
-    draw(SCREEN, images, player_car, computer_car)
+    draw(SCREEN, images, player_car, player_car2, computer_car, computer_car2)
 
     clock.tick(FPS)
 
@@ -425,12 +518,8 @@ while playing:
         if event.type == pygame.QUIT:
             playing = False
 
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            player_car.x = pygame.mouse.get_pos()[0]
-            player_car.y = pygame.mouse.get_pos()[1]
-            player_car.vel = 0.5
-
-    handle_collision(player_car, computer_car, game_info)
+    handle_collision(player_car, player_car2, computer_car,
+                     computer_car2, game_info)
 
     if game_info.game_finished():
         SCREEN.blit(WIN_SCREEN, (200, 200))
@@ -439,6 +528,6 @@ while playing:
         game_info.reset()
         player_car.reset()
         computer_car.reset_comp(game_info.level)
-
+        computer_car2.reset_comp(game_info.level)
 
 pygame.quit()
